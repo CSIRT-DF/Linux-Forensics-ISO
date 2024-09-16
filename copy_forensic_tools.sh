@@ -9,7 +9,7 @@ BINARIES=(
     pwd more less rmdir rm file strings zip tar cat sed head tail awk sort cut
     diff tee ping find chmod chown top htop uname hostname time date watch kill
     wget curl ln scp rsync ip traceroute nslookup dig dd echo w last lastlog
-    lsof mount free ss iptables bash ldd which
+    lsof mount free ss iptables bash ldd which memdump
 )
 
 # Função para copiar um binário e suas dependências

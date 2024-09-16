@@ -44,6 +44,26 @@ Estes comandos devem mostrar caminhos dentro de `/media`, não do sistema host.
 
 Agora você está em um ambiente forense isolado. Use as ferramentas fornecidas para sua análise.
 
+#### Captura da Memória
+
+```bash
+sudo memdump | ssh csirt@forensics "cat > /media/artefatos/memory_$(date +%Y%m%d_%H%M%S).dump"
+```
+
+#### Tráfego de Rede
+
+Ajustes os comandos conforme necessário para capturar o tráfego de rede.
+
+```bash
+sudo tcpdump -i eth0 'not (port 22)' -w - | ssh csirt@forensics "cat > /media/artefatos/captura_$(date +%Y%m%d_%H%M%S).pcap"
+```
+
+Você pode visualizar o arquivo `.pcap` com a ferramenta `tcpdump`:
+
+```bash
+tcpdump -r captura_20240916_181214.pcap -nnvvX
+```
+
 ### 5. Saindo do Ambiente Forense
 
 Quando terminar, use o comando `exit` para sair do shell forense.
@@ -57,6 +77,12 @@ sudo umount /media
 ## Desenvolvimento e Manutenção do Kit
 
 ### Copiando Binários e Bibliotecas
+
+Instalando as ferramentas necessárias:
+
+```bash
+sudo ./install_dependencies.sh
+```
 
 Para atualizar o kit com novos binários:
 
