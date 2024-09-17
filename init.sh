@@ -1,5 +1,19 @@
 #!/bin/bash
 
+
+# Define cores para o terminal
+YELLOW='\033[1;33m'
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+echo -e "${YELLOW}CSIRT-DF${NC}"
+echo -e "${YELLOW}   ___                        _        _____            _      ${NC}"
+echo -e "${YELLOW}  / __\__  _ __ ___ _ __  ___(_) ___  /__   \___   ___ | |___  ${NC}"
+echo -e "${YELLOW} / _\/ _ \| '__/ _ \ '_ \/ __| |/ __|   / /\/ _ \ / _ \| / __| ${NC}"
+echo -e "${YELLOW}/ / | (_) | | |  __/ | | \__ \ | (__   / / | (_) | (_) | \__ \ ${NC}"
+echo -e "${YELLOW}\/   \___/|_|  \___|_| |_|___/_|\___|  \/   \___/ \___/|_|___/ ${NC}"
+
 # Ativar modo de erro estrito
 set -euo pipefail
 
@@ -9,61 +23,33 @@ if [ "$(id -u)" != "0" ]; then
    exit 1
 fi
 
-SCRIPT_DIR=$(dirname "$(readlink -f "./build.sh")")
+SCRIPT_DIR=$(dirname "$(readlink -f "./init.sh")")
 FORENSIC_TOOLS_DIR="$SCRIPT_DIR"
 
-# Função para adicionar diretórios ao início de uma variável de ambiente PATH-like
-prepend_path() {
-    local var_name=$1
-    local new_path=$2
-    local current_path=${!var_name//"::"/":"}
-    current_path=${current_path#":"}
-    current_path=${current_path%":"}
-    export $var_name="$new_path${current_path:+:$current_path}"
-}
-
-# Limpar variáveis existentes
-PATH=""
-LD_LIBRARY_PATH=""
-MANPATH=""
-unset LD_PRELOAD  # Limpar LD_PRELOAD
+echo -e "${YELLOW}"Configurando ambiente forense..."${NC}"
+echo "$FORENSIC_TOOLS_DIR"
 
 # Configurar PATH
-for dir in bin sbin usr/bin usr/sbin; do
-    prepend_path PATH "$FORENSIC_TOOLS_DIR/$dir"
-done
+export PATH="$FORENSIC_TOOLS_DIR/usr/bin:$FORENSIC_TOOLS_DIR/usr/sbin:"
 
 # Configurar LD_LIBRARY_PATH
-for dir in lib lib64 usr/lib usr/lib64; do
-    prepend_path LD_LIBRARY_PATH "$FORENSIC_TOOLS_DIR/$dir"
-done
+export LD_LIBRARY_PATH="$FORENSIC_TOOLS_DIR/lib/x86_64-linux-gnu:$FORENSIC_TOOLS_DIR/lib64:"
 
-# Configurar MANPATH
-prepend_path MANPATH "$FORENSIC_TOOLS_DIR/usr/share/man"
-
-# Adicionar caminhos padrão do sistema ao final
-PATH="$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-
-# Verificar se os diretórios críticos existem
-for dir in bin sbin usr/bin usr/sbin lib lib64 usr/lib usr/lib64; do
-    if [ ! -d "$FORENSIC_TOOLS_DIR/$dir" ]; then
-        echo "Aviso: Diretório $FORENSIC_TOOLS_DIR/$dir não encontrado" >&2
-    fi
-done
+# Limpar LD_PRELOAD
+unset LD_PRELOAD
 
 # Verificar se o bash forense existe
-FORENSIC_BASH="$FORENSIC_TOOLS_DIR/bin/bash"
+FORENSIC_BASH="$FORENSIC_TOOLS_DIR/usr/bin/bash"
 if [ ! -x "$FORENSIC_BASH" ]; then
     echo "Erro: bash forense não encontrado em $FORENSIC_BASH" >&2
     exit 1
 fi
 
 # Exibir configuração final
-echo "Ambiente forense configurado:"
+echo -e "${YELLOW}"Ambiente forense configurado:"${NC}"
 echo "Usuário atual: $(id)"
 echo "PATH=$PATH"
 echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
-echo "MANPATH=$MANPATH"
 echo "LD_PRELOAD está limpo"
 echo "Usando bash forense: $FORENSIC_BASH"
 
@@ -78,5 +64,5 @@ forensic_exit() {
 trap forensic_exit EXIT
 
 # Manter o shell como root, usando o bash forense
-echo "Entrando em shell root forense. Use 'exit' para sair."
+echo -e "${RED}"Entrando em shell root forense. Use 'exit' para sair."${NC}"
 exec "$FORENSIC_BASH" --norc

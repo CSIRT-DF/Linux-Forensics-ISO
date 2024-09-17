@@ -82,6 +82,12 @@ O script `build.sh` realiza todo o trabalho de compilação e empacotamento do k
 sudo ./build.sh
 ```
 
+## Testando a imagem .iso
+
+```bash
+./test.sh
+```
+
 Revise o script `build.sh` para garantir que todos os binários necessários estejam incluídos.
 
 ## Boas Práticas
