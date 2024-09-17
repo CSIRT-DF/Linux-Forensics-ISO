@@ -9,7 +9,8 @@ if [ "$(id -u)" != "0" ]; then
    exit 1
 fi
 
-FORENSIC_TOOLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR=$(dirname "$(readlink -f "./build.sh")")
+FORENSIC_TOOLS_DIR="$SCRIPT_DIR"
 
 # Função para adicionar diretórios ao início de uma variável de ambiente PATH-like
 prepend_path() {

@@ -1,5 +1,20 @@
 #!/bin/bash
 
+# Define cores para o terminal
+YELLOW='\033[1;33m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+
+echo -e "${YELLOW}CSIRT-DF${NC}"
+echo -e "${YELLOW}   ___                        _        _____            _      ${NC}"
+echo -e "${YELLOW}  / __\__  _ __ ___ _ __  ___(_) ___  /__   \___   ___ | |___  ${NC}"
+echo -e "${YELLOW} / _\/ _ \| '__/ _ \ '_ \/ __| |/ __|   / /\/ _ \ / _ \| / __| ${NC}"
+echo -e "${YELLOW}/ / | (_) | | |  __/ | | \__ \ | (__   / / | (_) | (_) | \__ \ ${NC}"
+echo -e "${YELLOW}\/   \___/|_|  \___|_| |_|___/_|\___|  \/   \___/ \___/|_|___/ ${NC}"
+
+echo -e "${GREEN}Instalando dependências...${NC}"
+sudo ./install_dependencies.sh
+
 # Diretório de destino para os binários e bibliotecas
 DEST_DIR="./forense_tools"
 
@@ -65,7 +80,8 @@ if [ "\$(id -u)" != "0" ]; then
    exit 1
 fi
 
-FORENSIC_TOOLS_DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR=\$(dirname "\$(readlink -f "$0")")
+FORENSIC_TOOLS_DIR="\$SCRIPT_DIR"
 
 # Função para adicionar diretórios ao início de uma variável de ambiente PATH-like
 prepend_path() {
@@ -146,3 +162,9 @@ echo "Script de inicialização atualizado criado em $DEST_DIR/init.sh"
 chmod +x "$DEST_DIR/init.sh"
 
 echo "Script de inicialização criado em $DEST_DIR/init.sh"
+
+echo "Gerando hashes"
+source ./generate_sha256_hashes.sh
+
+echo "Gerando imagem .iso"
+sudo genisoimage -o forensic_tools.iso -R -J -joliet-long -iso-level 3 -V "Forensic_Tools" forense_tools/

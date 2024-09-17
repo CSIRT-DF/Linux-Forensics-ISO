@@ -76,39 +76,13 @@ sudo umount /media
 
 ## Desenvolvimento e Manutenção do Kit
 
-### Copiando Binários e Bibliotecas
-
-Instalando as ferramentas necessárias:
+O script `build.sh` realiza todo o trabalho de compilação e empacotamento do kit forense. Execute-o para gerar uma nova imagem ISO:
 
 ```bash
-sudo ./install_dependencies.sh
+sudo ./build.sh
 ```
 
-Para atualizar o kit com novos binários:
-
-```bash
-sudo ./copy_forensic_tools.sh
-```
-
-Revise o script `copy_forensic_tools.sh` para garantir que todos os binários necessários estejam incluídos.
-
-### Criando uma Nova Imagem .iso
-
-Após atualizar os binários, crie uma nova imagem ISO:
-
-```bash
-sudo genisoimage -o forensic_tools.iso -R -J -joliet-long -iso-level 3 -V "Forensic Tools" forense_tools/
-```
-
-### Atualizando Hashes
-
-Gere novos hashes SHA256 para todos os arquivos no kit:
-
-```bash
-./generate_sha256_hashes.sh
-```
-
-Mantenha um registro desses hashes para verificação de integridade.
+Revise o script `build.sh` para garantir que todos os binários necessários estejam incluídos.
 
 ## Boas Práticas
 
