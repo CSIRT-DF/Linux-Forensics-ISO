@@ -1,5 +1,24 @@
 # Linux Forensic Tools
 
+```console
+CSIRT-DF
+   ___                        _        _____            _      
+  / __\__  _ __ ___ _ __  ___(_) ___  /__   \___   ___ | |___  
+ / _\/ _ \| '__/ _ \ '_ \/ __| |/ __|   / /\/ _ \ / _ \| / __| 
+/ / | (_) | | |  __/ | | \__ \ | (__   / / | (_) | (_) | \__ \ 
+\/   \___/|_|  \___|_| |_|___/_|\___|  \/   \___/ \___/|_|___/ 
+Configurando ambiente forense...
+/media
+Ambiente forense configurado:
+Usuário atual: uid=0(root) gid=0(root) groups=0(root)
+PATH=/media/usr/local/sbin:/media/usr/local/bin:/media/usr/sbin:/media/usr/bin:/media/sbin:/media/bin
+LD_LIBRARY_PATH=/media/lib:/media/lib64
+LD_PRELOAD está limpo
+Usando bash forense: /media/bin/bash
+Entrando em shell root forense. Use exit para sair.
+bash-5.1# 
+```
+
 ## Visão Geral
 
 Este kit de ferramentas forenses para Linux é projetado para fornecer um ambiente isolado e confiável para análises forenses digitais. Ele inclui uma coleção de binários e bibliotecas seguros, empacotados em uma imagem ISO para fácil distribuição e uso.
