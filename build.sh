@@ -129,7 +129,10 @@ echo "Script de inicialização criado em $DEST_DIR/init.sh"
 #source ./generate_sha256_hashes.sh
 
 echo "Gerando imagem .iso"
+# Excluindo imagem .iso anterior se existir
+rm -f forensic_tools.iso
+
 # sudo genisoimage -o forensic_tools.iso -R -J -joliet-long -iso-level 3 -V "Forensic_Tools" forense_tools/ | pv -s "$(du -sb forense_tools/ | awk '{print $1}')" > /dev/null
 (sudo genisoimage -o - -R -J -joliet-long -iso-level 3 -V "Forensic_Tools" forense_tools/ | \
- pv -s "$(du -sb forense_tools/ | awk '{print $1}')" | \
- dd of=forensic_tools.iso bs=4M) 2>&1 | grep --line-buffered -o '\([0-9.]\+%\)'
+pv -s "$(du -sb forense_tools/ | awk '{print $1}')" | \
+dd of=forensic_tools.iso bs=4M) 2>&1 | grep --line-buffered -o '\([0-9.]\+%\)'

@@ -30,16 +30,17 @@ echo -e "${YELLOW}"Configurando ambiente forense..."${NC}"
 echo "$FORENSIC_TOOLS_DIR"
 
 # Configurar PATH
-export PATH="$FORENSIC_TOOLS_DIR/usr/bin:$FORENSIC_TOOLS_DIR/usr/sbin:"
+export PATH="$FORENSIC_TOOLS_DIR/usr/local/sbin:$FORENSIC_TOOLS_DIR/usr/local/bin:$FORENSIC_TOOLS_DIR/usr/sbin:$FORENSIC_TOOLS_DIR/usr/bin:$FORENSIC_TOOLS_DIR/sbin:$FORENSIC_TOOLS_DIR/bin"
+
 
 # Configurar LD_LIBRARY_PATH
-export LD_LIBRARY_PATH="$FORENSIC_TOOLS_DIR/lib/x86_64-linux-gnu:$FORENSIC_TOOLS_DIR/lib64:"
+export LD_LIBRARY_PATH="$FORENSIC_TOOLS_DIR/lib:$FORENSIC_TOOLS_DIR/lib64"
 
 # Limpar LD_PRELOAD
 unset LD_PRELOAD
 
 # Verificar se o bash forense existe
-FORENSIC_BASH="$FORENSIC_TOOLS_DIR/usr/bin/bash"
+FORENSIC_BASH="$FORENSIC_TOOLS_DIR/bin/bash"
 if [ ! -x "$FORENSIC_BASH" ]; then
     echo "Erro: bash forense não encontrado em $FORENSIC_BASH" >&2
     exit 1
