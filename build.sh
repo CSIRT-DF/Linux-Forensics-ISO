@@ -19,51 +19,26 @@ sudo ./install_dependencies.sh
 # Diretório de destino para os binários e bibliotecas
 DEST_DIR="./forense_tools"
 
-# Lista de binários a serem copiados, exatamente como fornecida pelo usuário
-BINARIES=(
-    stat ls netstat grep sha256sum sha512sum tcpdump ps df du vim touch ssh cp mv
-    pwd more less rmdir rm file strings zip tar cat sed head tail awk sort cut
-    diff tee ping find chmod chown top htop uname hostname time date watch kill
-    wget curl ln scp rsync ip traceroute nslookup dig dd echo w last lastlog
-    lsof mount free ss iptables bash ldd which memdump clear reset id whoami
-)
-
-# Função para copiar um binário e suas dependências
-copy_binary_and_deps() {
-    local binary=$1
-    local binary_path=$(which $binary)
-
-    if [ -z "$binary_path" ]; then
-        echo "Aviso: $binary não encontrado"
-        return
-    fi
-
-    # Copiar o binário
-    mkdir -p "$DEST_DIR/$(dirname $binary_path)"
-    cp "$binary_path" "$DEST_DIR$binary_path"
-
-    # Copiar as dependências
-    ldd "$binary_path" 2>/dev/null | grep "=> /" | awk '{print $3}' | while read -r lib; do
-        mkdir -p "$DEST_DIR$(dirname $lib)"
-        cp "$lib" "$DEST_DIR$lib"
-    done
-
-    # Copiar o interpretador dinâmico se existir
-    interp=$(ldd "$binary_path" 2>/dev/null | grep "ld-linux" | awk '{print $1}')
-    if [ -n "$interp" ]; then
-        mkdir -p "$DEST_DIR$(dirname $interp)"
-        cp "$interp" "$DEST_DIR$interp"
-    fi
-}
-
 # Criar diretório de destino
 mkdir -p "$DEST_DIR"
 
-# Copiar cada binário e suas dependências
-for binary in "${BINARIES[@]}"; do
-    echo "Copiando $binary e suas dependências..."
-    copy_binary_and_deps "$binary"
-done
+# Copie as pastas `/bin`, `/sbin`, `/lib`, e `/lib64` para o diretório `forense_tools`
+echo -e "${GREEN}Copiando binários e bibliotecas para $DEST_DIR...${NC}"
+# cp -rL /bin /sbin /lib /lib64 "$DEST_DIR"
+# rsync -a /bin /sbin /lib /lib64 "$DEST_DIR" | pv -l -s $(du -sb /bin /sbin /lib /lib64 | awk '{sum+=$1} END {print sum}') > /dev/null
+# sudo rsync -a /bin/ /sbin/ /lib/ /lib64/ "$DEST_DIR" | pv -l -s $(du -sb /bin /sbin /lib /lib64 | awk '{sum+=$1} END {print sum}') > /dev/null
+
+echo -e "${BLUE} Copiando /bin"
+rsync -a --delete --info=progress2 /bin/ "$DEST_DIR/bin/"
+
+echo -e "${BLUE} Copiando /sbin"
+rsync -a --delete  --info=progress2 /sbin/ "$DEST_DIR/sbin/"
+
+echo -e "${BLUE} Copiando /lib"
+rsync -a --delete --info=progress2 /lib/ "$DEST_DIR/lib/"
+
+echo -e "${BLUE} Copiando /lib64"
+rsync -a --delete --info=progress2 /lib64/ "$DEST_DIR/lib64/"
 
 echo "Processo concluído. Os binários e bibliotecas foram copiados para $DEST_DIR"
 
@@ -101,16 +76,17 @@ echo -e "\${YELLOW}"Configurando ambiente forense..."\${NC}"
 echo "\$FORENSIC_TOOLS_DIR"
 
 # Configurar PATH
-export PATH="\$FORENSIC_TOOLS_DIR/usr/bin:\$FORENSIC_TOOLS_DIR/usr/sbin:"
+export PATH="\$FORENSIC_TOOLS_DIR/usr/local/sbin:\$FORENSIC_TOOLS_DIR/usr/local/bin:\$FORENSIC_TOOLS_DIR/usr/sbin:\$FORENSIC_TOOLS_DIR/usr/bin:\$FORENSIC_TOOLS_DIR/sbin:\$FORENSIC_TOOLS_DIR/bin"
+
 
 # Configurar LD_LIBRARY_PATH
-export LD_LIBRARY_PATH="\$FORENSIC_TOOLS_DIR/lib/x86_64-linux-gnu:\$FORENSIC_TOOLS_DIR/lib64:"
+export LD_LIBRARY_PATH="\$FORENSIC_TOOLS_DIR/lib:\$FORENSIC_TOOLS_DIR/lib64"
 
 # Limpar LD_PRELOAD
 unset LD_PRELOAD
 
 # Verificar se o bash forense existe
-FORENSIC_BASH="\$FORENSIC_TOOLS_DIR/usr/bin/bash"
+FORENSIC_BASH="\$FORENSIC_TOOLS_DIR/bin/bash"
 if [ ! -x "\$FORENSIC_BASH" ]; then
     echo "Erro: bash forense não encontrado em \$FORENSIC_BASH" >&2
     exit 1
@@ -149,8 +125,11 @@ chmod +x "$DEST_DIR/init.sh"
 
 echo "Script de inicialização criado em $DEST_DIR/init.sh"
 
-echo "Gerando hashes"
-source ./generate_sha256_hashes.sh
+#echo "Gerando hashes"
+#source ./generate_sha256_hashes.sh
 
 echo "Gerando imagem .iso"
-sudo genisoimage -o forensic_tools.iso -R -J -joliet-long -iso-level 3 -V "Forensic_Tools" forense_tools/
+# sudo genisoimage -o forensic_tools.iso -R -J -joliet-long -iso-level 3 -V "Forensic_Tools" forense_tools/ | pv -s "$(du -sb forense_tools/ | awk '{print $1}')" > /dev/null
+(sudo genisoimage -o - -R -J -joliet-long -iso-level 3 -V "Forensic_Tools" forense_tools/ | \
+ pv -s "$(du -sb forense_tools/ | awk '{print $1}')" | \
+ dd of=forensic_tools.iso bs=4M) 2>&1 | grep --line-buffered -o '\([0-9.]\+%\)'
