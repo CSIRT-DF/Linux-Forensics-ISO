@@ -6,7 +6,7 @@ Este kit de ferramentas forenses para Linux é projetado para fornecer um ambien
 
 ## Pré-requisitos
 
-- Sistema operacional Linux
+- Sistema operacional Linux ou Windows com WSL
 - Privilégios de superusuário (root)
 - Ferramentas: `mount`, `genisoimage`, `sha256sum`
 
@@ -88,7 +88,40 @@ sudo ./build.sh
 ./test.sh
 ```
 
+## Desmontando a imagem .iso
+
+```bash
+./clean.sh
+```
+
 Revise o script `build.sh` para garantir que todos os binários necessários estejam incluídos.
+
+### Manualmente
+
+Copie as pastas `/bin`, `/sbin`, `/lib`, e `/lib64` para o diretório `forense_tools`:
+
+```bash
+cp -rL /lib64 forense_tools
+```
+
+Crie a imagem ISO:
+
+```bash
+genisoimage -o forensic_tools.iso -R -J -V "Forensic Tools" forense_tools
+```
+
+Monte a imagem para testar:
+
+```bash
+sudo mount -o loop forensic_tools.iso /media
+```
+
+Modifique as variáveis de ambiente:
+
+```bash
+export PATH=/media/usr/local/sbin:/media/usr/local/bin:/media/usr/sbin:/media/usr/bin:/media/sbin:/media/bin
+export LD_LIBRARY_PATH=/media/lib:/mnt/lib64
+```
 
 ## Boas Práticas
 
