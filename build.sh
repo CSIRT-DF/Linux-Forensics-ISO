@@ -53,6 +53,9 @@ GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m'
 
+SCRIPT_DIR=\$(dirname "\$(readlink -f "./init.sh")")
+FORENSIC_TOOLS_DIR="\$SCRIPT_DIR"
+
 echo -e "\${YELLOW}CSIRT-DF\${NC}"
 echo -e "\${YELLOW}   ___                        _        _____            _      \${NC}"
 echo -e "\${YELLOW}  / __\__  _ __ ___ _ __  ___(_) ___  /__   \___   ___ | |___  \${NC}"
@@ -91,8 +94,7 @@ if [ "\$(id -u)" != "0" ]; then
    exit 1
 fi
 
-SCRIPT_DIR=\$(dirname "\$(readlink -f "./init.sh")")
-FORENSIC_TOOLS_DIR="\$SCRIPT_DIR"
+
 
 echo -e "\${YELLOW}"Configurando ambiente forense..."\${NC}"
 echo "\$FORENSIC_TOOLS_DIR"
