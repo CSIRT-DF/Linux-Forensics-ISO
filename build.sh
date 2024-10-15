@@ -24,9 +24,6 @@ mkdir -p "$DEST_DIR"
 
 # Copie as pastas `/bin`, `/sbin`, `/lib`, e `/lib64` para o diretório `forense_tools`
 echo -e "${GREEN}Copiando binários e bibliotecas para $DEST_DIR...${NC}"
-# cp -rL /bin /sbin /lib /lib64 "$DEST_DIR"
-# rsync -a /bin /sbin /lib /lib64 "$DEST_DIR" | pv -l -s $(du -sb /bin /sbin /lib /lib64 | awk '{sum+=$1} END {print sum}') > /dev/null
-# sudo rsync -a /bin/ /sbin/ /lib/ /lib64/ "$DEST_DIR" | pv -l -s $(du -sb /bin /sbin /lib /lib64 | awk '{sum+=$1} END {print sum}') > /dev/null
 
 echo -e "${BLUE} Copiando /bin"
 rsync -a --delete --info=progress2 /bin/ "$DEST_DIR/bin/"
@@ -37,15 +34,18 @@ rsync -a --delete  --info=progress2 /sbin/ "$DEST_DIR/sbin/"
 echo -e "${BLUE} Copiando /lib"
 rsync -a --delete --info=progress2 /lib/ "$DEST_DIR/lib/"
 
+echo -e "${BLUE} Copiando /lib32"
+rsync -a --delete --info=progress2 /lib32/ "$DEST_DIR/lib32/"
+
 echo -e "${BLUE} Copiando /lib64"
 rsync -a --delete --info=progress2 /lib64/ "$DEST_DIR/lib64/"
 
 echo "Processo concluído. Os binários e bibliotecas foram copiados para $DEST_DIR"
 
+
 # Script de inicialização
 cat > "./init.sh" << EOF
 #!/bin/bash
-
 
 # Define cores para o terminal
 YELLOW='\033[1;33m'
@@ -62,6 +62,28 @@ echo -e "\${YELLOW}\/   \___/|_|  \___|_| |_|___/_|\___|  \/   \___/ \___/|_|___
 
 # Ativar modo de erro estrito
 set -euo pipefail
+
+
+# Função para adicionar diretórios ao LD_LIBRARY_PATH
+add_to_ld_library_path() {
+    local dir="$1"
+    if [ -d "$dir" ]; then
+        find "$dir" -type d | while read -r subdir; do
+            LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}$subdir"
+        done
+    fi
+}
+
+# Inicializa LD_LIBRARY_PATH
+LD_LIBRARY_PATH=""
+
+# Varre os diretórios lib, lib32 e lib64
+for lib_dir in "lib" "lib32" "lib64"; do
+    add_to_ld_library_path "\$FORENSIC_TOOLS_DIR/\$lib_dir"
+done
+
+# Remove o último ':' se existir
+LD_LIBRARY_PATH=\$(echo $LD_LIBRARY_PATH | sed 's/:$//')
 
 # Verificar se está sendo executado como root
 if [ "\$(id -u)" != "0" ]; then
@@ -80,7 +102,8 @@ export PATH="\$FORENSIC_TOOLS_DIR/usr/local/sbin:\$FORENSIC_TOOLS_DIR/usr/local/
 
 
 # Configurar LD_LIBRARY_PATH
-export LD_LIBRARY_PATH="\$FORENSIC_TOOLS_DIR/lib:\$FORENSIC_TOOLS_DIR/lib64"
+export LD_LIBRARY_PATH="\$LD_LIBRARY_PATH"
+
 
 # Limpar LD_PRELOAD
 unset LD_PRELOAD
@@ -103,9 +126,22 @@ echo "Usando bash forense: \$FORENSIC_BASH"
 # Função para desativar o ambiente forense
 forensic_exit() {
     echo "Desativando ambiente forense..."
+    # Desmontar o ponto de montagem /media
+    if mountpoint -q /media; then
+        echo "Desmontando /media..."
+        umount /media
+        if [ \$? -eq 0 ]; then
+            echo "Ponto de montagem /media desmontado com sucesso."
+        else
+            echo "Erro ao desmontar /media. Por favor, verifique manualmente."
+        fi
+    else
+        echo "/media não está montado."
+    fi
     # Restaurar variáveis de ambiente originais aqui, se necessário
     unset -f forensic_exit
 }
+
 
 # Registrar a função de saída
 trap forensic_exit EXIT
@@ -130,9 +166,13 @@ echo "Script de inicialização criado em $DEST_DIR/init.sh"
 
 echo "Gerando imagem .iso"
 # Excluindo imagem .iso anterior se existir
-rm -f forensic_tools.iso
+if [ -f "build/forensic_tools.iso" ]; then
+    echo -e "${RED}Excluindo imagem .iso anterior...${NC}"
+    rm -f build/forensic_tools.iso
+fi
+
 
 # sudo genisoimage -o forensic_tools.iso -R -J -joliet-long -iso-level 3 -V "Forensic_Tools" forense_tools/ | pv -s "$(du -sb forense_tools/ | awk '{print $1}')" > /dev/null
 (sudo genisoimage -o - -R -J -joliet-long -iso-level 3 -V "Forensic_Tools" forense_tools/ | \
 pv -s "$(du -sb forense_tools/ | awk '{print $1}')" | \
-dd of=forensic_tools.iso bs=4M) 2>&1 | grep --line-buffered -o '\([0-9.]\+%\)'
+dd of=build/forensic_tools.iso bs=4M) 2>&1 | grep --line-buffered -o '\([0-9.]\+%\)'
