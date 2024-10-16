@@ -68,11 +68,12 @@ set -euo pipefail
 
 
 # Função para adicionar diretórios ao LD_LIBRARY_PATH
+# Função para adicionar diretórios ao LD_LIBRARY_PATH
 add_to_ld_library_path() {
     local dir="$1"
-    if [ -d "$dir" ]; then
-        find "$dir" -type d | while read -r subdir; do
-            LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}$subdir"
+    if [ -d "\$dir" ]; then
+        find "\$dir" -type d | while read -r subdir; do
+            LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}\$subdir"
         done
     fi
 }
@@ -80,9 +81,9 @@ add_to_ld_library_path() {
 # Inicializa LD_LIBRARY_PATH
 LD_LIBRARY_PATH=""
 
-# Varre os diretórios lib, lib32 e lib64
+# Varre os diretórios lib, lib32 e lib64 relativos a FORENSIC_TOOLS_DIR
 for lib_dir in "lib" "lib32" "lib64"; do
-    add_to_ld_library_path "\$FORENSIC_TOOLS_DIR/\$lib_dir"
+    add_to_ld_library_path "z$FORENSIC_TOOLS_DIR/z$lib_dir"
 done
 
 # Remove o último ':' se existir
@@ -104,7 +105,7 @@ export PATH="\$FORENSIC_TOOLS_DIR/usr/local/sbin:\$FORENSIC_TOOLS_DIR/usr/local/
 
 
 # Configurar LD_LIBRARY_PATH
-export LD_LIBRARY_PATH="\$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH
 
 
 # Limpar LD_PRELOAD
@@ -127,7 +128,7 @@ echo "Usando bash forense: \$FORENSIC_BASH"
 
 # Função para desativar o ambiente forense
 forensic_exit() {
-    echo "Desativando ambiente forense..."
+   echo -e "\${RED}Desativando ambiente forense...\${NC}"
     # Desmontar o ponto de montagem /media
     if mountpoint -q /media; then
         echo "Desmontando /media..."
